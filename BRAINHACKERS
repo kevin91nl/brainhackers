@@ -1,0 +1,21 @@
+For running the code:
+cd [PATH_TO_BUFFER_BCI]/python/brainhackers
+source env/bin/activate
+
+Either:
+./buffer_bci/eeg_quickstart.sh
+./buffer_bci/debug_quickstart.sh
+
+Then:
+./buffer_bci/matlab/Cybathalon/startSigProcBuffer.sh
+./buffer_bci/matlab/Cybathalon/runIM.sh
+./buffer_bci/python/brainhackers/collect.sh
+
+Playback:
+./buffer_bci/dataAcq/startJavaFileProxy.sh localhost:1972 /home/kevin/Desktop/bci/data/1702/raw_buffer/0001 1 1
+
+./buffer_bci/eeg_quickstart.sh
+./buffer_bci/matlab/Cybathalon/startSigProcBuffer.sh
+./buffer_bci/python/brainhackers/runCybathlonAdapter.sh
+./buffer_bci/dataAcq/startJavaFileProxy.sh localhost:1972 /home/kevin/Desktop/bci/data/1702/raw_buffer/0001 1 1
+
