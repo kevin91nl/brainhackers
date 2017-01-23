@@ -57,6 +57,7 @@ def max2(numbers):
                 i2 = i
     return ([m1,m2],[i1,i2])
 
+
 # Receive events from the buffer and process them.
 def processBufferEvents():
         global running
