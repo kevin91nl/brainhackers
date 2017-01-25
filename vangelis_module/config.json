@@ -1,4 +1,4 @@
 {
-    "embedding_dim": 100,
+    "embedding_dim": 200,
     "window": 10
 }

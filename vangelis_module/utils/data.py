@@ -15,8 +15,10 @@ class dataset():
         self._TOTAL_X=np.zeros((1620,int(N/window()),9*window()))
         self._TOTAL_Y=np.zeros((1620,int(N/window()),4))
         with np.load(training_dataset()) as data:
-            X=data['arr_0']
-            y=data['arr_1']
+            ravel= np.arange(1620)
+            np.random.shuffle(ravel)
+            X=data['arr_0'][ravel]
+            y=data['arr_1'][ravel]
             x_temp=np.zeros((9,N))
             for sample in range(X.shape[0]):
                 frame_temp=np.zeros((9,N/window(),window()))
