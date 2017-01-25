@@ -15,7 +15,7 @@ _embedding_dim = _config.get('embedding_dim',_embedding_dim)
 _window = _config.get('window',_window)
 
 set_embedding_dim(_embedding_dim)
-set_training_dataset(os.path.join(_project_dir,'..\combined.pickle'))
+set_training_dataset(os.path.join(_project_dir,'..\combined.npz'))
 set_window(_window)
 set_project_root(_project_dir)
 

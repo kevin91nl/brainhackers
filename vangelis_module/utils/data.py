@@ -1,6 +1,6 @@
 import utils
 from utils.common import project_root,window,training_dataset
-
+import matplotlib.pyplot as plt
 
 import numpy as np
 from scipy.fftpack import fft
@@ -10,23 +10,28 @@ import pickle
 class dataset():
 
     def __init__(self):
-        N=200
-        temp_x=np.zeros((N,))
+        N=190
         self._All_Frames=[]
-        self._TOTAL_X=np.zeros((1620,int(N/window()),window()))
+        self._TOTAL_X=np.zeros((1620,int(N/window()),9*window()))
         self._TOTAL_Y=np.zeros((1620,int(N/window()),4))
-        with open(training_dataset(), 'rb') as file:
-            self._X, self._y = pickle.load(file)
-            XX=np.asarray(self._X)
-            yy=np.asarray(self._y)
-            for index in range(XX.shape[0]):
-                temp_x[:198]=XX[index,:]
-                temp_x_=temp_x.reshape(int(N/window()),window())
-                for frame in range(temp_x_.shape[0]):
-                    FRAME=np.absolute(fft(temp_x_[frame], axis=0))
-                    self._All_Frames.append(FRAME)
-                    self._TOTAL_X[index,frame,:]=FRAME
-                    self._TOTAL_Y[index,frame,:]=yy[index]
+        with np.load(training_dataset()) as data:
+            X=data['arr_0']
+            y=data['arr_1']
+            x_temp=np.zeros((9,N))
+            for sample in range(X.shape[0]):
+                frame_temp=np.zeros((9,N/window(),window()))
+                for electrode in range(x_temp.shape[0]):
+                    x_temp[electrode,:188]=X[sample,electrode*188:(electrode+1)*188]
+                    frame_temp[electrode]= x_temp[electrode].reshape(int(N/window()),window())
+                for frame in range(frame_temp.shape[1]):
+                    FRAME_Normal=np.zeros((90,))
+                    for electrode in range(frame_temp.shape[0]):
+                        FRAME=np.absolute(fft(frame_temp[electrode,frame], axis=0))
+                        FRAME_Normal[electrode*10:(electrode+1)*10] = FRAME
+                    FRAME_Normal /= np.linalg.norm(FRAME_Normal)
+                    self._All_Frames.append(FRAME_Normal)
+                    self._TOTAL_X[sample,frame,:]=FRAME_Normal
+                    self._TOTAL_Y[sample,frame,:]=y[sample]
         self._All_Frames=np.array(self._All_Frames)
 
 
