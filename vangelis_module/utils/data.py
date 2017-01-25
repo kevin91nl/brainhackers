@@ -27,8 +27,7 @@ class dataset():
                     FRAME_Normal=np.zeros((90,))
                     for electrode in range(frame_temp.shape[0]):
                         FRAME=np.absolute(fft(frame_temp[electrode,frame], axis=0))
-                        FRAME_Normal[electrode*10:(electrode+1)*10] = FRAME
-                    FRAME_Normal /= np.linalg.norm(FRAME_Normal)
+                        FRAME_Normal[electrode*10:(electrode+1)*10] = FRAME/np.linalg.norm(FRAME)
                     self._All_Frames.append(FRAME_Normal)
                     self._TOTAL_X[sample,frame,:]=FRAME_Normal
                     self._TOTAL_Y[sample,frame,:]=y[sample]
