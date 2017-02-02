@@ -1,13 +1,16 @@
 #!/usr/bin/env python
+
+"""
+Created on 15 January 2017
+@author: Vangelis Kostas, Natali Burgos
+"""
+
 import sys
-sys.path.append("../../dataAcq/buffer/python")
-sys.path.append( "../../python/signalProc")
+
 
 
 from scipy.fftpack import fft
-import FieldTrip
-import time
-import preproc
+from buffer_bci import preproc, FieldTrip
 import numpy as np
 from keras.models import model_from_json
 import struct,socket
@@ -35,8 +38,13 @@ THRESHOLDS= [.1,        .1,       .1,     .1]
 #Connect to BrainRacers
 br_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM);
 
-# Sends a command to BrainRacer.
+
 def send_command(command):
+    """
+    Sends a command to BrainRacer.
+    :param command: CMD_SPEED,CMD_JUMP,CMD_ROLL,CMD_RST
+    :rtype: None
+    """
     global br_socket
     print("Send cmd " + str(command) )
     cmd = (br_player * 10) + command
@@ -44,40 +52,40 @@ def send_command(command):
     br_socket.sendto(data, (br_hostname, br_port))
 
 
-def pythonclient(hostname='localhost',port=1972,timeout=5000):
+def client(hostname='localhost', port=1972, timeout=5000):
 
-    ftc = FieldTrip.Client()		
+    """
+    Starting a python client that will be reading the latest signal samples on the buffer
+    and using the classifier to get a prediction about the inferred action.
+    :param hostname: ip or hostname of the computer running BrainRacers
+    :param port: Connection port to the buffer.
+    """
+    ftc = FieldTrip.Client()
     # Wait until the buffer connects correctly and returns a valid header
     hdr = None;
     while hdr is None :
-        print 'Trying to connect to buffer on %s:%i ...'%(hostname,port)
+        print ('Trying to connect to buffer on %s:%i ...'%(hostname,port))
         try:
             ftc.connect(hostname, port)
-            print '\nConnected - trying to read header...'
+            print ('\nConnected - trying to read header...')
             hdr = ftc.getHeader()
-	except IOError:
-            pass
-	
+        except IOError:
+                pass
         if hdr is None:
-            print 'Invalid Header... waiting'
+            print('Invalid Header... waiting')
             time.sleep(1)
         else:
-            print hdr
-            print hdr.labels
+            print (hdr)
+            print (hdr.labels)
 
-    # Now do the echo server
-    nEvents=hdr.nEvents;
-    endExpt=None;
     while True:
+        try: latest = ftc.poll()
+        except: continue
 
         data=np.zeros((190,9))
-        true_data=ftc.getData()[-190:]
 
-        # print true_data
-        # print true_data.shape
+        true_data=ftc.getData(latest)[-190:]
         data[:,:]=true_data[:,:9]
-        # print true_data
-
         data = preproc.detrend(data.T)
 
         frame_temp=np.zeros((9,19,10))
@@ -92,28 +100,23 @@ def pythonclient(hostname='localhost',port=1972,timeout=5000):
             TOTAL_X[0,frame,:]=FRAME_Normal
         latest_prediction = model.predict(TOTAL_X)[0,-1]
         category = np.argmax(latest_prediction)
-        # print latest_prediction
-        send_command(CMDS[np.random.randint(0,3,1)[0]])
 
-        # time.sleep(2)
+        send_command(CMDS[category])
 
 if __name__ == "__main__":
-
-
-    model_string = open('/media/nat/Data/Documents/BCIpractical/buffer_bci/python/brainhackers/vangelis_module/mode.json','r').read()
-    print model_string
-    global model
+    model_string = open('model/mode.json', 'r').read()
     model = model_from_json(model_string)
-    model.load_weights('/media/nat/Data/Documents/BCIpractical/buffer_bci/python/brainhackers/vangelis_module/lstm_weigths.h5py')
-    hostname='localhost'
-    port=1972
-    timeout=5000    
+    model.load_weights('model/lstm_weigths.h5py')
+    hostname=buffer_hostname
+    port=buffer_port
+    timeout=5000
     if len(sys.argv)>1: # called with options, i.e. commandline
         hostname = sys.argv[1]
-	if len(sys.argv)>2:
-            try:
-                port = int(sys.argv[2])
-            except:
-                print 'Error: second argument (%s) must be a valid (=integer) port number'%sys.argv[2]
-                sys.exit(1)
-    pythonclient(hostname,port);
+    if len(sys.argv)>2:
+        try:
+            port = int(sys.argv[2])
+        except:
+            print ('Error: second argument (%s) must be a valid (=integer) port number'%sys.argv[2])
+            sys.exit(1)
+    client(hostname, port);
+
