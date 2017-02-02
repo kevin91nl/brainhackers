@@ -24,7 +24,7 @@ CMD_RST  = 99
 
 # Command configuration
 CMDS      = [CMD_ROLL, CMD_RST, CMD_JUMP, CMD_SPEED]
-THRESHOLDS= [.1,        .1,       .1,     .1      ]
+THRESHOLDS= [.1,        .1,       .1,     .1]
 
 # Sends a command to BrainRacer.
 def send_command(command):
