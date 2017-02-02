@@ -11,6 +11,15 @@ import numpy as np
 class EEGpreprocessing():
 
     def __init__(self, data, ch_range=[3,7], detrend=True, ica=True, ica_components=10, fft=True):
+
+        self.data = data
+        self.icaObj = FastICA(n_components=ica_components, whiten=True)
+        self.detrend = detrend
+        self.ica = ica
+        self.fft = fft
+        self.channels = ch_range
+
+    def renew(self, data, ch_range=[3,7], detrend=True, ica=True, ica_components=10, fft=True):
         """
         Preprocessor class for the data.
         :param data: Numpy array with all channels and epochs.

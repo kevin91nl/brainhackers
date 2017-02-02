@@ -15,6 +15,7 @@ import numpy as np
 from keras.models import model_from_json
 import struct,socket
 import time
+from preprocessingEEG import EEGpreprocessing
 
 # Configuration of buffer
 buffer_hostname='localhost'
@@ -37,7 +38,7 @@ THRESHOLDS= [.1,        .1,       .1,     .1]
 
 #Connect to BrainRacers
 br_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM);
-
+processor = None
 
 def send_command(command):
     """
@@ -81,12 +82,15 @@ def client(hostname='localhost', port=1972, timeout=5000):
     while True:
         try: latest = ftc.poll()
         except: continue
-
         data=np.zeros((190,9))
-
         true_data=ftc.getData(latest)[-190:]
         data[:,:]=true_data[:,:9]
-        data = preproc.detrend(data.T)
+        if processor is None:
+            processor=EEGpreprocessing(data.T)
+            processor.apply()
+        else:
+            processor.renew(data.T)
+            processor.apply()
 
         frame_temp=np.zeros((9,19,10))
         TOTAL_X=np.zeros((1,19,90))
@@ -95,8 +99,7 @@ def client(hostname='localhost', port=1972, timeout=5000):
         for frame in range(frame_temp.shape[1]):
             FRAME_Normal=np.zeros((90,))
             for electrode in range(frame_temp.shape[0]):
-                FRAME=np.absolute(fft(frame_temp[electrode,frame], axis=0))
-                FRAME_Normal[electrode*10:(electrode+1)*10] = FRAME
+                FRAME_Normal[electrode*10:(electrode+1)*10] = frame_temp[electrode,frame]
             TOTAL_X[0,frame,:]=FRAME_Normal
         latest_prediction = model.predict(TOTAL_X)[0,-1]
         category = np.argmax(latest_prediction)
