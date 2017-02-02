@@ -8,8 +8,6 @@ Created on 15 January 2017
 import sys
 
 
-
-from scipy.fftpack import fft
 from buffer_bci import preproc, FieldTrip
 import numpy as np
 from keras.models import model_from_json
